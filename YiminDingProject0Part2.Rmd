@@ -1,0 +1,89 @@
+---
+title: "Yimin Ding"
+image: "YiminDing.jpg"
+links:
+  - label: Resume
+    url: "https://www.linkedin.com/in/yimin-ding-0189101a5/"
+  - label: INS
+    url: "https://www.instagram.com/minnie_cheese4576/"
+  - label: RedBook
+    url: "https://www.xiaohongshu.com/user/profile/621598d8000000001000a155?xhsshare=CopyLink&appuid=621598d8000000001000a155&apptime=1693795490"
+    
+output:
+  postcards::solana
+
+---
+ 
+## About
+
+I'm Yimin Ding, and you can call me Minnie. I'm an epi student now studying in cardiovascular and clinical track. I spent my undergraduate year in Tulane University in New Orleans, where a place mixed with features such as hurricane, classics, romance, and oysters lol. I didn't raise my interest in programming until my last semester in Tulane, while a mandatory course requirement is needed for my graduation. Having been trying to escape from maths for 4 years, such experience diverted my schedule for future life, and made up the decision of exploring in this field in the future. I love swimming, and playing the piano. Reading is also what I am fond of doing in my spare time. I have studied as a liberal arts student in my past time, and have never realized that I would come into contact with the field of computing, nor did I think I would develop a strong interest in it.
+
+
+
+## Education
+
+**Tulane University** | New Orleans, USA
+
+B.S. | August 2019 - December 2022
+
+
+
+
+## Research Experience
+
+**Study on Mosquitos in the Hoffman Triangle Neighborhood in Nola** | Research Assistant | January 2022 - August 2022
+
+
+**Study on Relationship between COVID-19 Vaccination and Myocarditis/Pericarditis** | Research Assistant | December 2020 - August 2022
+
+
+**Mercury in Fish Community** | Researcher | September 2019 - December 2017
+
+
+
+
+## Internship
+
+
+**Epilepsy Alliance Louisiana** | Summer Internship | May 2022 - September 2022
+
+
+**Teladoc Health, Inc.** | Summer Intern of Asia Headquarter | June 2021 - August 2021
+
+
+**Shanghai Zhidao Education Technology Co., Ltd. (The Bund Education)** | Editor & English Course Assistant | September 2019 - June 2021
+
+
+
+
+##EXTRACURRICULAR ACTIVITY
+
+
+**International Student Advisory Board (ISAB), Tulane University** | Committee Chair of Campus Support | September 2021 - June 2022
+
+
+**Tulane International Society (TIS), Tulane University** | International Liaison | September 2021 - June 2022
+
+
+**Undergraduate Student Government Academic Affairs, Tulane University** | Committee Member | September 2020 - June 2021
+
+
+
+
+## Fun Facts
+
+**【i️】** | The name Minnie is given by my mum, with the thought of Micky Mouse is my favourite cartoon character in my childhood.
+
+
+**【i️i】** | Thinking of visiting the setting of Gone With the Wind, I chose Tulane University as my undergraduate school. However, I didn't visit that place during my four years of study.
+
+
+**【i️ii】** | As someone that was born and raised in Shanghai, a international metropolis, three days in New York made me surrounded in the sense of severe anxiety.
+
+
+**【iV】** | Used to avoid learning statistical packages, but can hardly imagine that in the future, I would fell in love with exploration after enrolling the course that has to take so as to graduate in the last semester. 
+
+
+**【V】**  | Though living in Shanghai for more than 20 years, I still get lost a lot, but I can skillfully recite the location of almost every bakery in this city.
+
+
