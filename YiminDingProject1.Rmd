@@ -1,0 +1,445 @@
+---
+title: "YiminDingProject1"
+output: html_document
+date: "2023-09-05"
+---
+
+```{r setup, include=FALSE}
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+
+knitr::opts_chunk$set(echo = TRUE)
+
+install.packages("here")
+library(here)
+library(tidyverse)
+
+install.packages("tidytuesdayR")
+if (!dir.exists(here("data"))) {
+    dir.create(here("data"))
+}
+
+
+if (!file.exists(here("data", "chocolate.RDS"))) {
+    url_csv <- "https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-01-18/chocolate.csv"
+    chocolate <- readr::read_csv(url_csv)
+
+saveRDS(chocolate, file = here("data", "chocolate.RDS"))
+}
+
+chocolate <- readRDS(here("data", "chocolate.RDS"))
+as_tibble(chocolate)
+glimpse(chocolate)
+
+library(ggplot2)
+library(readr)
+library(dplyr)
+```
+
+
+
+```{r part 1 Q1}
+
+ggplot(data = chocolate, aes(x = rating)) + geom_histogram(bins = 10) 
+ggplot(data = chocolate, aes(x = rating)) + geom_histogram(bins = 15)
+ggplot(data = chocolate, aes(x = rating)) + geom_histogram(bins = 20)
+ggplot(data = chocolate, aes(x = rating)) + geom_histogram(bins = 25)
+
+```
+#What bins mean in plotting functions is to show how many intervals the data will be divided into on the x-axis. When number of bins are changed, the vision representation is changed, and with larger number of bins, more detailed information can be captured. And this is also the reason why I choose bins = 15 since the size of data is not so large, and bins = 15 can help balance a clear, interpretable visualization.
+
+```{r part 1 Q2}
+
+bean_origin <- chocolate%>%count(country_of_bean_origin)
+glimpse(bean_origin)
+table(chocolate$country_of_bean_origin)
+```
+#There are 2*62 = 124 reviews.
+
+```{r part 1 Q3}
+rating_Ecuador <- chocolate %>%  filter(country_of_bean_origin == "Ecuador") 
+mean <- mean(rating_Ecuador$rating)
+mean
+
+total <-nrow(rating_Ecuador)
+total
+
+sd <- sd(rating_Ecuador$rating)
+sd
+
+result = data.frame(mean, sd, total)
+result
+```
+
+```{r part 1 Q4}
+mean_company <- aggregate(x=rating_Ecuador$rating, 
+                    by = list(rating_Ecuador$company_manufacturer),
+                    FUN = mean)
+arrange(mean_company,desc(mean_company$x))
+
+```
+#Amano,	Benoit Nihant, Beschle (Felchlin), Durci, Smooth Chocolator, The have the highest rate.
+
+```{r part 1 Q5}
+mean_origin <- aggregate(x=chocolate$rating, 
+                by = list(chocolate$country_of_bean_origin),
+                FUN = mean)
+sort_mean_origin <- mean_origin[order(-mean_origin$x),]
+top_3 <- head(sort_mean_origin,3)
+top_3
+
+```
+#Tobago, China, Sao Tome & Principe are top 3 countries.
+
+```{r part 1 Q6}
+data1 <- chocolate%>%select(5,10)
+data1 <- arrange(data1, country_of_bean_origin)
+more10 <- filter(bean_origin, n>10)
+
+
+more10df <- inner_join(more10, data1, by="country_of_bean_origin")
+glimpse(more10df)
+
+top3_new <- more10df %>% group_by(country_of_bean_origin) %>% summarize(value=mean(rating))
+top3_new <- arrange(top3_new, desc(value))
+
+glimpse(top3_new)
+
+```
+#Congo,Cuba, and Vietnam are the top new 3 countries.
+
+```{r part 1 Q7}
+library(lubridate)
+
+#Step1 
+more50df <- inner_join(bean_origin, chocolate, by="country_of_bean_origin")
+glimpse(more50df)
+
+more50 <- more50df %>%
+  group_by(country_of_bean_origin) %>%
+  filter(n() >= 50) %>%
+  pull(country_of_bean_origin)
+
+remove_list <- chocolate %>%
+  filter(country_of_bean_origin %in% more50)
+
+#Step2
+remove_list <- remove_list %>%
+  mutate(
+    chocolate_percentage_group = case_when(
+      substr(cocoa_percent, 1, 2) < 60 ~ "<60%",
+      substr(cocoa_percent, 1, 2) >= 60 & substr(cocoa_percent, 1, 2) < 70 ~ ">=60 to <70%",
+      substr(cocoa_percent, 1, 2) >= 70 & substr(cocoa_percent, 1, 2) < 90 ~ ">=70 to <90%",
+      substr(cocoa_percent, 1, 2) >= 90 ~ ">=90%",
+      TRUE ~ "Unknown" 
+    )
+  )
+
+#Step3: 
+remove_list$chocolate_percentage_group <- factor(
+  remove_list$chocolate_percentage_group,
+  levels = c("<60%", ">=60 to <70%", ">=70 to <90%", ">=90%")
+)
+
+fct_relevel(remove_list$chocolate_percentage_group, "<60%", ">=60 to <70%", ">=70 to <90%", ">=90%")
+
+order(remove_list$chocolate_percentage_group)
+
+
+
+
+#Step4
+boxplot_rating <- remove_list %>%
+  ggplot(aes(x = chocolate_percentage_group, y = rating)) +
+  geom_boxplot() +
+  facet_wrap(~ country_of_bean_origin) +
+  labs(
+    title = "Chocolate Percentage vs. Ratings by Country",
+    x = "Chocolate Percentage Group",
+    y = "Ratings"
+  ) +
+  theme_minimal()
+
+print(boxplot_rating)
+
+#Question
+average_ratings <- remove_list %>%
+  group_by(chocolate_percentage_group) %>%
+  summarize(avg_rating = mean(rating))
+
+
+print(average_ratings)
+
+# Step 5: Calculate the average rating for each chocolate percentage group
+average_ratings <- remove_list %>%
+  group_by(chocolate_percentage_group) %>%
+  summarize(avg_rating = mean(rating))
+
+
+# Print the average ratings
+print(average_ratings)
+table(remove_list$chocolate_percentage_group)
+
+```
+
+#>=60 to <70% is most highly rated and most countries don't agree since >=70 to <90% occupy the highset proportion.
+
+```{r part 2}
+#install.packages("gapminder")
+library(gapminder)
+library(dplyr)
+
+#Use this dataset it to create a new column called continent in our chocolate dataset that contains the continent name for each review where the country of bean origin is.
+gapminder <- gapminder %>% 
+  select(country_of_bean_origin = country,
+         continent = continent)
+
+data_2 <- left_join(chocolate, gapminder, by="country_of_bean_origin")
+
+#Only keep reviews that have reviews from countries of bean origin with at least 10 reviews.
+count <- data_2 %>% count(country_of_bean_origin)
+count2 <- filter(count, n>=10)
+
+At_Least_10 <- inner_join(data_2, count2, by="country_of_bean_origin")
+glimpse(At_Least_10)
+
+#Also, remove the country of bean origin named "Blend".
+At_Least_10 <- At_Least_10 %>%
+  filter(country_of_bean_origin != "Blend")
+
+
+temp = At_Least_10
+temp <- temp[is.na(temp$continent),] %>%
+  mutate(
+    continent = case_when(
+      country_of_bean_origin %in% c('Fiji', 'Papua New Guinea', 'Sao Tome') ~ 'Oceania',
+      country_of_bean_origin %in% c('Congo', 'Solomon Islands') ~ 'Africa',
+      country_of_bean_origin %in% c('Vanuatu') ~ 'Europe',
+      country_of_bean_origin %in% c('Trinidad', 'Grenada', 'St. Lucia') ~ 'South America',
+      country_of_bean_origin %in% c('U.S.A.', 'Belize') ~ 'North America'  
+    )
+)
+sum(is.na(temp))
+final <- temp
+
+'
+final <- At_Least_10 %>%
+  mutate(continent = ifelse(
+    country_of_bean_origin == "Fiji"|country_of_bean_origin == "Papua New Guinea" & is.na(continent),
+    "Oceania",
+    as.character(continent)
+  )) %>%
+  mutate(continent = ifelse(
+    country_of_bean_origin == "Sao Tome"| country_of_bean_origin =="Congo" |country_of_bean_origin == "Solomon Islands" & is.na(continent),
+    "Oceania",
+    as.character(continent)
+  )) %>%
+  mutate(continent = ifelse(
+    country_of_bean_origin == "Sao Tome"|country_of_bean_origin == "Congo" & is.na(continent),
+    "Africa",
+    as.character(continent)
+  )) %>%
+  mutate(continent = ifelse(
+    country_of_bean_origin == "Vanuatu" & is.na(continent),
+    "Europe",
+    as.character(continent)
+  )) %>%
+  mutate(continent = ifelse(
+    country_of_bean_origin == "Trinidad"|country_of_bean_origin =="Grenada"|country_of_bean_origin =="St. Lucia" & is.na(continent),
+    "South America",
+    as.character(continent)
+  )) %>%
+  mutate(continent = ifelse(
+    country_of_bean_origin == "U.S.A"|country_of_bean_origin == "Belize" & is.na(continent),
+    "North America",
+    as.character(continent)
+  )) 
+'
+  
+#Make a set of violin plots with ratings on the y-axis and continents on the x-axis.
+final %>% ggplot(aes(x=continent, y=rating))+
+  geom_violin()
+  
+```
+
+
+```{r part 3}
+library(stringr)
+#Set_1 <- chocolate %>% cbind("beans", "sugar", "cocoa_butter", "vanilla", "letchin", "salt") 
+beans="B"
+sugar="S"
+cocoa_butter="C"
+vanilla="V"
+letchin="L"
+salt="S"
+
+#Task1
+table(chocolate$ingredients)
+Set_1.2 <- chocolate %>% mutate(
+    beans = ifelse(str_detect(ingredients, beans), 1, 0),
+    sugar = ifelse(str_detect(ingredients, sugar), 1, 0),
+    cocoa_butter = ifelse(str_detect(ingredients, cocoa_butter), 1, 0),
+    vanilla = ifelse(str_detect(ingredients, vanilla), 1, 0),
+    lecithin = ifelse(str_detect(ingredients, letchin), 1, 0),
+    salt = ifelse(str_detect(ingredients, salt), 1, 0)
+  )
+
+#Task2
+Set_1.2 <- Set_1.2 %>%
+  mutate(
+    char_cocoa = ifelse(str_detect(most_memorable_characteristics, "cocoa"), 1, 0),
+    char_sweet = ifelse(str_detect(most_memorable_characteristics, "sweet"), 1, 0),
+    char_nutty = ifelse(str_detect(most_memorable_characteristics, "nutty"), 1, 0),
+    char_creamy = ifelse(str_detect(most_memorable_characteristics, "creamy"), 1, 0),
+    char_roasty = ifelse(str_detect(most_memorable_characteristics, "roasty"), 1, 0),
+    char_earthy = ifelse(str_detect(most_memorable_characteristics, "earthy"), 1, 0)
+)
+
+
+#Task3
+result <- Set_1.2 %>%
+  group_by(review_date) %>%
+  summarize(
+    beans = mean(beans, na.rm = TRUE),
+    sugar = mean(sugar, na.rm = TRUE),
+    cocoa_butter = mean(cocoa_butter, na.rm = TRUE),
+    vanilla = mean(vanilla, na.rm = TRUE),
+    lecithin = mean(lecithin, na.rm = TRUE),
+    salt = mean(salt, na.rm = TRUE),
+    char_cocoa = mean(char_cocoa),
+    char_sweet = mean(char_sweet),
+    char_nutty = mean(char_nutty),
+    char_creamy = mean(char_creamy),
+    char_roasty = mean(char_roasty),
+    char_earthy = mean(char_earthy)
+)
+
+#Q4
+result_long <- result %>%
+  pivot_longer(
+    cols = -review_date, 
+    names_to = "feature",
+    values_to = "mean_score"
+  )
+
+# Print the resulting dataset
+print(result_long)
+
+```
+
+
+```{r part 4}
+library(ggplot2)
+# Create a scatter plot with facets for each mean score
+scatter_plot <- ggplot(result_long, aes(x = review_date, y = mean_score,
+                                        color = feature)) +
+  
+  # Add scatter points
+  geom_point() +
+  
+  # Add smoothed non-linear trend lines
+  geom_smooth(method = "auto", se = TRUE) +
+  
+  # Facet by feature (create separate plots for each mean score)
+  #facet_wrap(~ feature, scales = "free_y") +
+  
+  # Add overall title and subtitle
+  labs(
+    title = "Mean Scores Over Time",
+    subtitle = "Trends in mean scores over time for different features",
+    caption = "By Yimin Ding",
+    x = "Year",
+    y = "Mean Score"
+  ) +
+  
+  # Customize the theme
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 12, color = "gray"),
+    plot.caption = element_text(size = 10),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.background = element_rect(fill = "lightgray"),
+    panel.grid.major = element_line(colour = "white", size = 0.5),
+    strip.text = element_text(size = 10)
+  )
+
+# Display the combined scatter plot
+print(scatter_plot)
+
+
+```
+
+```{r part 5}
+awful_plot <- chocolate %>% mutate(review_date = as.factor(review_date)) %>%
+  ggplot(aes(
+    x = review_date, 
+    y = rating,
+    color = review_date,
+    fill = review_date
+    )) +
+  geom_violin() + 
+  
+# 1. Choosing the meaningless plot type that may make the plot being complicated and unclear. Right plot use can make the visualization effectively conveys the message, and makes it intuitive and informative
+  geom_line() +
+
+# 2. With overcrowded Labels, it is hard to distinguish each data in the labels refer. Clear and uncluttered labels ensure a easier interpretation of the information in visualization.
+  geom_text(aes(label = review_date), hjust = 1, vjust = 1, size = 5) +
+  
+# 3. Inappropriate Scale occurs. Appropriate scale ensures that the data is represented accurately, preventing distortion or misinterpretation. 
+  scale_y_continuous(limits = c(0, 10), breaks = seq(0, 10, by = 1)) +
+  
+# 4. Lack of Axis Labels and Titles makes the content of the plot unclear, without knowing what the data shows.They help present the key insights. 
+  theme_void() +
+  
+# 5. Poor color choice makes the plot look ugly and in a mess. The effective color used can enhance the aesthetics and help distinguishing different elements in the plot. 
+  scale_fill_manual(values = c("2011" = "Black", "2020" = "Black", "2014" = "Black"))+
+  
+# 6. Non-Informative Legend. With multiple elements or groups in your plot. It makes viewers hard to understand the data's meaning.
+  theme(legend.position = "none") +
+  
+  
+# 7. Missing Data Handling. Inaccurate or misleading visualizations and conclusions may occur.
+  theme(panel.grid.major = element_line(color = "black"),
+        panel.grid.minor = element_blank())
+
+print(awful_plot)
+```
+
+
+```{r part 6}
+# Create a better plot with improvements
+chocolate_clear <- na.omit(chocolate)
+
+better_plot <- chocolate_clear %>% 
+    ggplot(aes(
+        x = as.factor(review_date),
+        y = rating,
+        fill = 'review_date'
+    )) +
+    geom_violin()+
+  
+# 1. Since it includes a violin plot, adding line is unnecessary and making the plot complicate, so I delate the line of geon_line(). 
+
+# 2. I adjust the geom_text() aesthetics, putting hjust and vjust to 0.5, and make the size smaller since the data is showed in a too cluttered way.
+  geom_text(aes(label = review_date), hjust = 0.5, vjust = 0.5, size = 3) +
+  
+# 3. The violin plot will automatically adjusts to the data, and provide the appropriate scaling, so I delate the line scale_y_continuous(limits = c(0, 10), breaks = seq(0, 10, by = 1)) and let it manually setting the scale. 
+  
+  
+# 4. I add axis labels and a title to provide context to the plot so as to present the plot content. 
+  labs(title = "Chocolate Ratings Over the Years", x = "Review Date", y = "Rating") +
+  
+# 5. Since I have no idea about which color to choose, I use a color palette since I know that enhancing the color palette can make the plot more distinguishable. 
+  scale_fill_brewer(palette = "Set2")+
+  
+# 6. I want to keep the legend for years, make the presentation clear, so I add a background color in it.
+  theme(legend.text = element_text(color = "black"), legend.background = element_rect(fill = "lightgray"))
+
+
+# 7. I clean the data before creating the plot, so I can ensure that the data used in the plot is clean.
+
+
+print(better_plot)
+
+```
+
